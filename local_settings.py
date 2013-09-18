@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+DEBUG=True
 
 #mandoku
 MDBASE="/Users/Shared/md-remote"
