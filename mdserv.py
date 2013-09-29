@@ -93,7 +93,7 @@ def getfile():
         fn = codecs.open("%s/%s" % (app.config['TXTDIR'], filename))
     except:
         return "Not found"
-    return Response ("\n%s" % (fn.read(-1)),  content_type="text/plain;charset=UTF-8")
+    return Response ("%s" % (fn.read(-1)),  content_type="text/plain;charset=UTF-8")
 
 
 # dic
@@ -172,7 +172,7 @@ def dicentry(key):
                 dfr = ""
             return "%s%s%s*** %s\n%s\n" % (s, hyr , dfr, dictab['loc'] , "\n".join(lc))
         else:
-            return "no result"
+            return ""
     else:
         return "no redis"
 
@@ -182,16 +182,18 @@ def procline():
     l = request.values.get('query', '')
     l = md_re.sub("", l)
     de = []
-    for i in range(0, len(l)):
-        j = i+1
-        res = dicentry(l[i:j])
-        de.append(res)
-        while res and j < len(l):
-            j += 1
+    try:
+        for i in range(0, len(l)):
+            j = i+1
             res = dicentry(l[i:j])
             de.append(res)
-    return "\n%s" % ("".join(de))
-    
+            while res and j < len(l):
+                j += 1
+                res = dicentry(l[i:j])
+                de.append(res)
+        return "\n%s" % ("".join(de))
+    except:
+        return "Not Found: %s " % (l)
 
 
 @app.route('/dic', methods=['GET',])
