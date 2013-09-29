@@ -110,7 +110,11 @@ def formatle(l, e):
         else:
             v = e
         v = re.sub('[a-z]', '', v)
-        return "[[%s%s/%s-p%4.4d.djvu][%s : %s]]" % (dicurl, l, l, int(v), dictab[l], e)
+        try:
+            return "[[%s%s/%s-p%4.4d.djvu][%s : %s]]" % (dicurl, l, l, int(v), dictab[l], e)
+        except:
+            return "%s : %s" % (dictab[l], e)
+            
     elif l == "yo":
         ec = e.split(',')
         return "[[%syokoi/yokoi-p%4.4d.djvu][%s : %s]]" % (dicurl, int(ec[0]), dictab[l], e)
@@ -120,7 +124,10 @@ def formatle(l, e):
         return "[[%smz/vol%2.2d/mz-v%2.2d-p%4.4d.djvu][%s : %s]]" % (dicurl, int(v[0][1:]), int(v[0][1:]), int(re.sub('[a-z]', '', v[1])),  dictab[l], e)
     elif l == "je":
         ec = e.split('/')
-        v = re.sub('[a-z]', '', ec[0])
+        if ec[0] == '---':
+            v = re.sub('[a-z]', '', ec[1])
+        else:
+            v = re.sub('[a-z]', '', ec[0])
         return "[[%sjeb/jeb-p%4.4d.djvu][%s : %s]]" % (dicurl, int(v), dictab[l], e)
     elif l == "zhongwen":
         # zhongwen : V09-p14425-1
@@ -133,7 +140,10 @@ def formatle(l, e):
             
 def dicentry(key):
     if r:
-        d = r.hgetall(key)
+        try:
+            d = r.hgetall(key)
+        except:
+            return "no result"
         try:
             d.pop('dummy')
         except:
