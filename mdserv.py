@@ -199,9 +199,9 @@ def dicentry(key):
 @app.route('/procline', methods=['GET',])
 def procline():
     l = request.values.get('query', '')
-    print l
+#    print l
     l = md_re.sub("", l)
-    print l
+#    print l
     de = []
     try:
         for i in range(0, len(l)):
