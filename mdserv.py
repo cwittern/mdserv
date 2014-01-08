@@ -236,9 +236,9 @@ def dicpage(dic=None,page=None):
     pn = prevnext(page)
     return """<html>
 <body>
-<img src="/static/dic/%s/%s.png" style="width:100%%;"/>
-<a href="/dicpage/%s" type="button" id="btnPrev" >%s</a>
-<a href="/dicpage/%s" type="button" id="btnNext">%s</a>
+<img src="/zb/static/dic/%s/%s.png" style="width:100%%;"/>
+<a href="/zb/dicpage/%s" type="button" id="btnPrev" >%s</a>
+<a href="/zb/dicpage/%s" type="button" id="btnNext">%s</a>
 </body>
 </html>""" % (dic, page, "%s/%s" % (dic, pn[0]), pn[0], "%s/%s" % (dic, pn[1]), pn[1])
 
