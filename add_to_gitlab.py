@@ -8,8 +8,11 @@ import os, re, git, sys, subprocess, codecs
 import gitlab
 from sh import git
 from time import sleep
-start="/tmp/text"
-gl = gitlab.Gitlab('http://zb.kanripo.org', 'hzj3TXjgzysKdqcVPmSF')
+#start="/tmp/test"
+start="/Users/Shared/md-remote/text/ZB6"
+gl = gitlab.Gitlab('http://gl.kanripo.org', 'PFZRVSmzskZZnxtttwCz')
+# chris: HrNL4a42ZDnyjaHpXty2
+#                   'HrNL4a42ZDnyjaHpXty2')
 # Connect to get the current user
 gl.auth()
 

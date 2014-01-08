@@ -7,7 +7,7 @@ from datetime import datetime
 import subprocess
 import codecs, re
 
-md_re = re.compile(ur"<[^>]*>|[　-㄀＀-￯\n¶]+|\t[^\n]+\n")
+md_re = re.compile(ur"<[^>]*>|[　-㄀＀-￯\n¶]+|\t[^\n]+\n|\$[^;]+;")
 
 dictab = {'hydcd1' : u'漢語大詞典',
           'hydcd' : u'漢語大詞典',
@@ -93,7 +93,7 @@ def getfile():
         fn = codecs.open("%s/%s" % (app.config['TXTDIR'], filename))
     except:
         return "Not found"
-    return Response ("%s" % (fn.read(-1)),  content_type="text/plain;charset=UTF-8")
+    return Response ("\n%s" % (fn.read(-1)),  content_type="text/plain;charset=UTF-8")
 
 
 # dic
@@ -101,9 +101,9 @@ def formatle(l, e):
     "formats the location entry"
     ec = e.split('-')
     if l == "daikanwa":
-        return "[[%sdkw/p%s-%s.djvu][%s : %s]]" % (dicurl, ec[0][1:], ec[1][1:], dictab[l], e)
+        return "[[%sdkw/p%s-%s][%s : %s]]" % (dicurl, ec[0][1:], ec[1][1:], dictab[l], e)
     elif l == "hydzd" :
-        return "[[%shydzd/hydzd-%s.djvu][%s : %s]]" % (dicurl, ec[1], dictab[l], e)
+        return "[[%shydzd/hydzd-%s][%s : %s]]" % (dicurl, ec[1], dictab[l], e)
     elif l in ["koga", "ina", "bcs", "naka", "zgd"] :
         if "," in e:
             v = e.split(',')[0]
@@ -111,27 +111,27 @@ def formatle(l, e):
             v = e
         v = re.sub('[a-z]', '', v)
         try:
-            return "[[%s%s/%s-p%4.4d.djvu][%s : %s]]" % (dicurl, l, l, int(v), dictab[l], e)
+            return "[[%s%s/%s-p%4.4d][%s : %s]]" % (dicurl, l, l, int(v), dictab[l], e)
         except:
             return "%s : %s" % (dictab[l], e)
             
     elif l == "yo":
         ec = e.split(',')
-        return "[[%syokoi/yokoi-p%4.4d.djvu][%s : %s]]" % (dicurl, int(ec[0]), dictab[l], e)
+        return "[[%syokoi/yokoi-p%4.4d][%s : %s]]" % (dicurl, int(ec[0]), dictab[l], e)
     elif l == "mz":
         v = e.split(',')[0]
         v = v.split('p')
-        return "[[%smz/vol%2.2d/mz-v%2.2d-p%4.4d.djvu][%s : %s]]" % (dicurl, int(v[0][1:]), int(v[0][1:]), int(re.sub('[a-z]', '', v[1])),  dictab[l], e)
+        return "[[%smz/vol%2.2d/mz-v%2.2d-p%4.4d][%s : %s]]" % (dicurl, int(v[0][1:]), int(v[0][1:]), int(re.sub('[a-z]', '', v[1])),  dictab[l], e)
     elif l == "je":
         ec = e.split('/')
         if ec[0] == '---':
             v = re.sub('[a-z]', '', ec[1])
         else:
             v = re.sub('[a-z]', '', ec[0])
-        return "[[%sjeb/jeb-p%4.4d.djvu][%s : %s]]" % (dicurl, int(v), dictab[l], e)
+        return "[[%sjeb/jeb-p%4.4d][%s : %s]]" % (dicurl, int(v), dictab[l], e)
     elif l == "zhongwen":
         # zhongwen : V09-p14425-1
-        return "[[%szhwdcd/%5.5d.djvu][%s : %s]]" % (dicurl, int(ec[1][1:]), dictab[l], e)
+        return "[[%szhwdcd/zhwdcd-p%5.5d][%s : %s]]" % (dicurl, int(ec[1][1:]), dictab[l], e)
     else:
         try:
             return "%s : %s" % (dictab[l], e)
@@ -151,7 +151,9 @@ def dicentry(key):
         if len(d) > 0:
             ks = d.keys()
             ks.sort()
-            s = "** %s (%s)\n" % (key, len(d))
+            s = "** %s (%s)" % (key, len(d))
+            xtr = ""
+            ytr = ""
             df=[]
             lc=[]
             hy=[]
@@ -161,7 +163,10 @@ def dicentry(key):
                 if k[0] == 'loc':
                     lc.append(formatle(k[1], d[a]))
                 else:
-#                    print k
+                    if k[1] == 'kanwa':
+                        xtr +=  " " + d[a]
+                    if k[1] == 'abc':
+                        ytr += " " + d[a]
                     if k[1] == 'hydcd1':
                         hy.append("**** %s: %s\n" % ("".join(k[2:]), d[a]))
                     elif k[1] in seen:
@@ -180,7 +185,11 @@ def dicentry(key):
                 dfr = "%s\n" % ("".join(df))
             else:
                 dfr = ""
-            return "%s%s%s*** %s\n%s\n" % (s, hyr , dfr, dictab['loc'] , "\n".join(lc))
+            if len(s) + len(xtr) + len(ytr) > 100:
+                dx = 100 - len(s) - len(xtr) 
+                print dx
+                ytr = ytr[0:dx]
+            return "%s%s%s\n%s%s*** %s\n%s\n" % (s, xtr, ytr, hyr , dfr, dictab['loc'] , "\n".join(lc))
         else:
             return ""
     else:
@@ -190,7 +199,9 @@ def dicentry(key):
 @app.route('/procline', methods=['GET',])
 def procline():
     l = request.values.get('query', '')
+    print l
     l = md_re.sub("", l)
+    print l
     de = []
     try:
         for i in range(0, len(l)):
@@ -205,6 +216,31 @@ def procline():
     except:
         return "Not Found: %s " % (l)
 
+def prevnext(page):
+    p = page.split('-')
+    if p[-1].startswith ('p'):
+        n= int(p[-1][1:])
+        fn = fn = "%%%d.%dd" % (len(p[-1]) - 1, len(p[-1]) - 1)
+        prev = "%s-p%s" % ("-".join(p[:-1]), fn % (n - 1) )
+        next = "%s-p%s" % ("-".join(p[:-1]), fn % (n + 1) )
+    else:
+        n= int(p[-1])
+        fn = fn = "%%%d.%dd" % (len(p[-1]), len(p[-1]))
+        prev = "%s-%s" % ("-".join(p[:-1]), fn % (n - 1) )
+        next = "%s-%s" % ("-".join(p[:-1]), fn % (n + 1) )
+    return prev, next
+        
+@app.route('/dicpage/<dic>/<page>', methods=['GET',])
+def dicpage(dic=None,page=None):
+#    pn = "a", "b"
+    pn = prevnext(page)
+    return """<html>
+<body>
+<img src="/static/dic/%s/%s.png" style="width:100%%;"/>
+<a href="/dicpage/%s" type="button" id="btnPrev" >%s</a>
+<a href="/dicpage/%s" type="button" id="btnNext">%s</a>
+</body>
+</html>""" % (dic, page, "%s/%s" % (dic, pn[0]), pn[0], "%s/%s" % (dic, pn[1]), pn[1])
 
 @app.route('/dic', methods=['GET',])
 def searchdic():
