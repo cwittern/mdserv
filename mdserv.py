@@ -12,6 +12,7 @@ md_re = re.compile(ur"<[^>]*>|[　-㄀＀-￯\n¶]+|\t[^\n]+\n|\$[^;]+;")
 dictab = {'hydcd1' : u'漢語大詞典',
           'hydcd' : u'漢語大詞典',
           'hydzd' : u'漢語大字典',
+          'sanli' : u'三禮辭典',
           'daikanwa' : u'大漢和辞典',
           'koga' : u'禅語字典',
           'guoyu' : u'國語辭典',
@@ -24,6 +25,7 @@ dictab = {'hydcd1' : u'漢語大詞典',
           'dfb' : u'丁福報佛學大辭典',
           'unihan' : u'Unicode 字典',
           'kanwa' : u'發音',
+          'kangxi' : u'康熙字典',
           'pinyin' : u'羅馬拼音',
           'loc' : u'其他詞典',
           'je' : u'日英仏教辞典',
@@ -43,7 +45,7 @@ dictab = {'hydcd1' : u'漢語大詞典',
           'zd' : u'Zen Dust',
           'ku' : u'ku',
           'sks' : u'sks',
-#          '' : u'',
+          'guxun' : u'故訓匯纂',
           } 
 
 try:
@@ -90,7 +92,9 @@ def getfile():
     #the filename is of the form ZB1a/ZB1a0001/ZB1a0001_002.txt 
     filename = request.values.get('filename', '')
     try:
-        fn = codecs.open("%s/%s" % (app.config['TXTDIR'], filename))
+        datei = "%s/%s" % (app.config['TXTDIR'], filename)
+        print datei
+        fn = codecs.open(datei)
     except:
         return "Not found"
     return Response ("\n%s" % (fn.read(-1)),  content_type="text/plain;charset=UTF-8")
@@ -104,7 +108,10 @@ def formatle(l, e):
         return "[[%sdkw/p%s-%s][%s : %s]]" % (dicurl, ec[0][1:], ec[1][1:], dictab[l], e)
     elif l == "hydzd" :
         return "[[%shydzd/hydzd-%s][%s : %s]]" % (dicurl, ec[1], dictab[l], e)
-    elif l in ["koga", "ina", "bcs", "naka", "zgd"] :
+    #comment the next two lines to link to the cached files on the server
+    elif l == "kangxi":
+        return "[[http://www.kangxizidian.com/kangxi/%4.4d.gif][%s : %s]]" % (int(e), dictab[l], e)
+    elif l in ["koga", "ina", "bcs", "naka", "zgd", "sanli", "kangxi"] :
         if "," in e:
             v = e.split(',')[0]
         else:
@@ -187,8 +194,9 @@ def dicentry(key):
                 dfr = ""
             if len(s) + len(xtr) + len(ytr) > 100:
                 dx = 100 - len(s) - len(xtr) 
-                print dx
+#                print dx
                 ytr = ytr[0:dx]
+            xtr = ytr = ""
             return "%s%s%s\n%s%s*** %s\n%s\n" % (s, xtr, ytr, hyr , dfr, dictab['loc'] , "\n".join(lc))
         else:
             return ""
@@ -234,13 +242,14 @@ def prevnext(page):
 def dicpage(dic=None,page=None):
 #    pn = "a", "b"
     pn = prevnext(page)
+    us = url_for('static', filename='dic')
     return """<html>
 <body>
-<img src="/static/dic/%s/%s.png" style="width:100%%;"/>
+<img src="%s/%s/%s.png" style="width:100%%;"/>
 <a href="/dicpage/%s" type="button" id="btnPrev" >%s</a>
 <a href="/dicpage/%s" type="button" id="btnNext">%s</a>
 </body>
-</html>""" % (dic, page, "%s/%s" % (dic, pn[0]), pn[0], "%s/%s" % (dic, pn[1]), pn[1])
+</html>""" % (us, dic, page, "%s/%s" % (dic, pn[0]), pn[0], "%s/%s" % (dic, pn[1]), pn[1])
 
 @app.route('/dic', methods=['GET',])
 def searchdic():
